@@ -1,0 +1,22 @@
+[project]
+name = "pydstk"
+dynamic = ["version"]
+authors = [
+  { name="Chris Wetherill", email="dstk@tbmh.org" },
+]
+description = "Python client for dstk"
+readme = "README.md"
+license = "GPL-3.0-only
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU GPLv3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/wetherc/dstk/tree/main/pydstk"
+"Bug Tracker" = "https://github.com/wetherc/dstk/issues"
+
+[tool.setuptools.dynamic]
+version = {attr = "package.__version__"}
