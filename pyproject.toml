@@ -1,22 +1,31 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pydstk"
 dynamic = ["version"]
 authors = [
-  { name="Chris Wetherill", email="dstk@tbmh.org" },
+  { name="DSTK Team", email="hello@dstk.org" },
 ]
 description = "Python client for dstk"
 readme = "README.md"
-license = "GPL-3.0-only
+license = "GPL-3.0-or-later"
+license-files = ["LICEN[CS]E*", "vendored/licenses/*.txt", "AUTHORS.md"]
 requires-python = ">=3.7"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU GPLv3",
-    "Operating System :: OS Independent",
-]
 
 [project.urls]
-"Homepage" = "https://github.com/wetherc/dstk/tree/main/pydstk"
-"Bug Tracker" = "https://github.com/wetherc/dstk/issues"
+"Homepage" = "https://github.com/dstk-labs/pydstk/tree/main/pydstk"
+"Bug Tracker" = "https://github.com/dstk-labs/pydstk/issues"
+
+[project.scripts]
+pydstk = "pydstk.__main__:main_cli"
 
 [tool.setuptools.dynamic]
-version = {attr = "package.__version__"}
+version = {attr = "pydstk.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pydstk = ["VERSION"]
