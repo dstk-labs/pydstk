@@ -19,7 +19,7 @@ requires-python = ">=3.7"
 "Bug Tracker" = "https://github.com/dstk-labs/pydstk/issues"
 
 [project.scripts]
-pydstk = "pydstk.__main__:main_cli"
+pydstk = "pydstk.__main__:cli"
 
 [tool.setuptools.dynamic]
 version = {attr = "pydstk.__version__"}

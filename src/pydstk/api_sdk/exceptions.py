@@ -1,0 +1,2 @@
+class DstkSdkError(Exception):
+    pass
