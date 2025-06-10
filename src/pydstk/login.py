@@ -8,11 +8,8 @@ from pydstk.api_sdk.config import config
 logger = CliLogger()
 
 
-def apikey(pydstk_dir, config_path):
-    pydstk_dir = os.path.expanduser("~/.pydstk") if pydstk_dir is None else pydstk_dir
-    config_path = (
-        os.path.join(pydstk_dir, "config.json") if config_path is None else config_path
-    )
+def apikey():
+    config_path = config.CONFIG_FILE_NAME
 
     if os.path.exists(config_path):
         config_data = json.load(open(config_path))
@@ -22,8 +19,9 @@ def apikey(pydstk_dir, config_path):
 
 
 def set_apikey(apikey):
-    pydstk_dir = os.path.expanduser("~/.pydstk")
-    config_path = os.path.join(pydstk_dir, "config.json")
+    pydstk_dir = config.CONFIG_DIR_PATH
+    config_path = config.CONFIG_FILE_NAME
+
     if not os.path.exists(pydstk_dir):
         os.makedirs(pydstk_dir)
     config_data = {}

@@ -2,6 +2,8 @@ import click
 import colorama
 from click._compat import get_text_stderr
 
+import pydstk.cli.auth  # noqa: F401
+
 
 def show(self, file=None):
     if file is None:

@@ -2,10 +2,10 @@ import os
 import json
 
 
-_DEFAULT_WEB_URL = "http://localhost:5731"
+_DEFAULT_WEB_URL = "http://localhost:5173"
 _DEFAULT_API_HOST = "http://localhost:4000/graphql"
-_DEFAULT_CONFIG_DIR_PATH = "~/.dstk"
-_DEFAULT_CONFIG_FILE_NAME = os.path.expanduser("config.json")
+_DEFAULT_CONFIG_DIR_PATH = os.path.expanduser("~/.dstk")
+_DEFAULT_CONFIG_FILE_NAME = os.path.join(_DEFAULT_CONFIG_DIR_PATH, "config.json")
 _DEFAULT_HELP_HEADERS_COLOR = "yellow"
 _DEFAULT_HELP_OPTIONS_COLOR = "green"
 _DEFAULT_USE_CONSOLE_COLORS = True
@@ -14,7 +14,7 @@ _DEFAULT_USE_CONSOLE_COLORS = True
 # Copy-pasted from `login.py` to avoid a circular dependency
 # Can probably be cleaned up later
 def get_api_key(pydstk_dir, config_path):
-    pydstk_dir = os.path.expanduser("~/.pydstk") if pydstk_dir is None else pydstk_dir
+    pydstk_dir = os.path.expanduser("~/.dstk") if pydstk_dir is None else pydstk_dir
     config_path = (
         os.path.join(pydstk_dir, "config.json") if config_path is None else config_path
     )
