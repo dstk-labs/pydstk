@@ -3,6 +3,7 @@ import colorama
 from click._compat import get_text_stderr
 
 import pydstk.cli.auth  # noqa: F401
+import pydstk.cli.teams  # noqa: F401
 
 
 def show(self, file=None):

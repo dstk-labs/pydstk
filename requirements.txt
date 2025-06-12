@@ -1,3 +1,5 @@
 ruff
 clickclick-help-colors
 click-didyoumean
+gql
+marshmallow
