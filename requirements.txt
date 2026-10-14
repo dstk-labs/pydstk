@@ -1,5 +1,11 @@
 ruff
-clickclick-help-colors
+click
+click-help-colors
 click-didyoumean
-gql
+gql[requests]
+keyring
 marshmallow
+attrs
+colorama
+requests
+six

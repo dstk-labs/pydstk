@@ -13,6 +13,18 @@ readme = "README.md"
 license = "GPL-3.0-or-later"
 license-files = ["LICEN[CS]E*", "vendored/licenses/*.txt", "AUTHORS.md"]
 requires-python = ">=3.7"
+dependencies = [
+  "attrs",
+  "click",
+  "click-didyoumean",
+  "click-help-colors",
+  "colorama",
+  "gql[requests]",
+  "keyring",
+  "marshmallow",
+  "requests",
+  "six",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/dstk-labs/pydstk/tree/main/pydstk"
