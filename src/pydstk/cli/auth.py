@@ -26,3 +26,9 @@ def save_api_key(api_key):
 def device_login():
     command = login.DeviceLoginCommand()
     command.execute()
+
+
+@cli.command("logout", help="Log out and remove your saved login")
+def logout():
+    command = login.LogoutCommand()
+    command.execute()

@@ -1,6 +1,7 @@
 import importlib.metadata
 import webbrowser
 
+import requests
 from keyring.errors import NoKeyringError
 
 from pydstk.api_sdk import credentials, device_auth
@@ -62,6 +63,24 @@ class DeviceLoginCommand(CommandBase):
                 "No system keyring is available to store your login. "
                 "Set PYDSTK_API_KEY to use an API key instead."
             )
+
+
+class LogoutCommand(CommandBase):
+    def execute(self):
+        session_token = credentials.get_session_token()
+        if not session_token:
+            self.logger.log("You are not logged in.")
+            return
+
+        try:
+            device_auth.sign_out(session_token)
+        except requests.RequestException:
+            self.logger.warning(
+                "Could not reach DSTK to end the session. Removing the local login anyway."
+            )
+
+        credentials.delete_session_token()
+        self.logger.log("Logged out.")
 
 
 def _format_user_code(user_code):

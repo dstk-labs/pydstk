@@ -16,6 +16,7 @@ ERROR_MESSAGES = {
 }
 
 GET_USER_QUERY = "{ getUser { userName } }"
+LOGOUT_MUTATION = "mutation { logout }"
 
 
 def request_device_code():
@@ -70,3 +71,13 @@ def fetch_user_name(session_token):
     )
     response.raise_for_status()
     return response.json()["data"]["getUser"]["userName"]
+
+
+def sign_out(session_token):
+    response = requests.post(
+        config.API_HOST,
+        json={"query": LOGOUT_MUTATION},
+        headers={"Authorization": f"Bearer {session_token}"},
+        timeout=REQUEST_TIMEOUT_SECONDS,
+    )
+    response.raise_for_status()
