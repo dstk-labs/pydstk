@@ -20,6 +20,7 @@ dependencies = [
   "click-help-colors",
   "colorama",
   "gql[requests]",
+  "keyring",
   "marshmallow",
   "requests",
   "six",

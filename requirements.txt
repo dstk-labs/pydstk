@@ -3,6 +3,7 @@ click
 click-help-colors
 click-didyoumean
 gql[requests]
+keyring
 marshmallow
 attrs
 colorama

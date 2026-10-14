@@ -4,6 +4,7 @@ import json
 
 _DEFAULT_WEB_URL = "http://localhost:5173"
 _DEFAULT_API_HOST = "http://localhost:4000/graphql"
+_DEFAULT_AUTH_URL = "http://localhost:4000/api/auth"
 _DEFAULT_CONFIG_DIR_PATH = os.path.expanduser("~/.dstk")
 _DEFAULT_CONFIG_FILE_NAME = os.path.join(_DEFAULT_CONFIG_DIR_PATH, "config.json")
 _DEFAULT_HELP_HEADERS_COLOR = "yellow"
@@ -42,6 +43,7 @@ class config(object):
 
     WEB_URL = os.environ.get("PYDSTK_WEB_URL", _DEFAULT_WEB_URL)
     API_HOST = os.environ.get("PYDSTK_API_HOST", _DEFAULT_API_HOST)
+    AUTH_URL = os.environ.get("PYDSTK_AUTH_URL", _DEFAULT_AUTH_URL)
     CONFIG_DIR_PATH = os.path.expanduser(
         os.environ.get("PYDSTK_CONFIG_PATH", _DEFAULT_CONFIG_DIR_PATH)
     )
