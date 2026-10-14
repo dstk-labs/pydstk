@@ -20,3 +20,9 @@ def save_api_key(api_key):
     command = login.SetApiKeyCommand()
     api_key = api_key.strip()
     command.execute(api_key)
+
+
+@cli.command("login", help="Log in through your browser")
+def device_login():
+    command = login.DeviceLoginCommand()
+    command.execute()

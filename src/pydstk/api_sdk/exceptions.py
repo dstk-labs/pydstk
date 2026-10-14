@@ -12,3 +12,7 @@ class ResourceCreatingError(DstkSdkError):
 
 class ResourceCreatingDataError(ResourceCreatingError):
     pass
+
+
+class DeviceAuthorizationError(DstkSdkError):
+    pass
