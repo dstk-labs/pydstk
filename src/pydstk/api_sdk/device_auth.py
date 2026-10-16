@@ -15,8 +15,8 @@ ERROR_MESSAGES = {
     "expired_token": "The login code expired. Run `pydstk login` again.",
 }
 
-GET_USER_QUERY = "{ getUser { userName } }"
-LOGOUT_MUTATION = "mutation { logout }"
+GET_USER_QUERY = "{ user { get { userName } } }"
+LOGOUT_MUTATION = "mutation { auth { logout } }"
 
 
 def request_device_code():
@@ -70,7 +70,7 @@ def fetch_user_name(session_token):
         timeout=REQUEST_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
-    return response.json()["data"]["getUser"]["userName"]
+    return response.json()["data"]["user"]["get"]["userName"]
 
 
 def sign_out(session_token):
