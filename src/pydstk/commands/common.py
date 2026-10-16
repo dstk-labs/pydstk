@@ -22,14 +22,13 @@ class BaseCommand:
 @six.add_metaclass(abc.ABCMeta)
 class ListCommandMixin(object):
     WAITING_FOR_RESPONSE_MESSAGE = "Waiting for data..."
-    TOTAL_ITEMS_KEY = "total"
 
     def execute(self, **kwargs):
-        instances = self._get_instances(kwargs)
+        instances = self._get_instances(**kwargs)
         self._log_objects_list(instances)
 
     @abc.abstractmethod
-    def _get_instances(self, kwargs):
+    def _get_instances(self, **kwargs):
         pass
 
     @abc.abstractmethod
@@ -50,26 +49,9 @@ class ListCommandMixin(object):
 
     @staticmethod
     def _make_list_table(table_data):
-        # TODO - ASCII-ify table data
-        return table_data
-
-    def _generate_data_table(self, **kwargs):
-        limit = kwargs.get("limit")
-        offset = kwargs.get("offset")
-        meta_data = dict()
-        while self.TOTAL_ITEMS_KEY not in meta_data or offset < meta_data.get(
-            self.TOTAL_ITEMS_KEY
-        ):
-            kwargs["offset"] = offset
-            instances, meta_data = self._get_instances(**kwargs)
-            next_iteration = False
-            if instances:
-                table_data = self._get_table_data(instances)
-                table_str = self._make_list_table(table_data) + "\n"
-                if offset + limit < meta_data.get(self.TOTAL_ITEMS_KEY):
-                    next_iteration = True
-            else:
-                table_str = "No data found"
-
-            yield table_str, next_iteration
-            offset += limit
+        widths = [max(len(str(cell)) for cell in column) for column in zip(*table_data)]
+        rows = [
+            "  ".join(str(cell).ljust(width) for cell, width in zip(row, widths))
+            for row in table_data
+        ]
+        return "\n".join(row.rstrip() for row in rows)

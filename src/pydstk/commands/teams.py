@@ -20,9 +20,6 @@ class TeamsCommand(BaseCommand):
 
 
 class ListTeamsCommand(ListCommandMixin, TeamsCommand):
-    def execute(self, **kwargs):
-        return self._generate_data_table(**kwargs)
-
     def _get_instances(self, **kwargs):
         try:
             instances = self.client.list(**kwargs)
@@ -37,27 +34,7 @@ class ListTeamsCommand(ListCommandMixin, TeamsCommand):
         for team in objects:
             handle = team.team_id
             name = team.name
-            created_date = team.created_date
-            modified_date = team.modified_date
+            created_date = team.date_created
+            modified_date = team.date_modified
             data.append((handle, name, created_date, modified_date))
         return data
-
-    def _generate_data_table(self, **kwargs):
-        limit = kwargs.get("limit")
-        offset = kwargs.get("offset")
-        next_iteration = True
-
-        while next_iteration:
-            kwargs["offset"] = offset
-            instances = self._get_instances(**kwargs)
-            if instances:
-                table_data = self._get_table_data(instances)
-                table_str = self._make_list_table(table_data) + "\n"
-            else:
-                table_str = "No data found"
-
-            if len(instances) < limit:
-                next_iteration = False
-
-            yield table_str, next_iteration
-            offset += limit
