@@ -7,7 +7,7 @@ from pydstk.api_sdk import models
 class Team(BaseSchema):
     MODEL = models.Team
 
-    team_id = marshmallow.fields.Str(load_from="teamId", load_only=True)
+    team_id = marshmallow.fields.Str(data_key="teamId", load_only=True)
     name = marshmallow.fields.Str()
-    created_date = marshmallow.fields.Str(load_from="createdDate", load_only=True)
-    modified_date = marshmallow.fields.Str(load_from="modifiedDate", load_only=True)
+    date_created = marshmallow.fields.Str(data_key="dateCreated", load_only=True)
+    date_modified = marshmallow.fields.Str(data_key="dateModified", load_only=True)
