@@ -5,7 +5,7 @@ class BaseSchema(marshmallow.Schema):
     MODEL = None
 
     @marshmallow.post_dump
-    def remove_none_or_empty_values(self, data):
+    def remove_none_or_empty_values(self, data, **kwargs):
         return {
             key: value for key, value in data.items() if value not in (None, {}, [])
         }
@@ -21,11 +21,11 @@ class BaseSchema(marshmallow.Schema):
         return instances
 
     def _get_instance(self, obj_dict):
-        obj = self.load(obj_dict)
-        if obj.data is None:
+        data = self.load(obj_dict)
+        if data is None:
             return None
 
-        instance = self.MODEL(**obj.data)
+        instance = self.MODEL(**data)
         self._get_nested(instance, obj_dict)
         return instance
 
@@ -34,8 +34,8 @@ class BaseSchema(marshmallow.Schema):
             if not isinstance(field_type, marshmallow.fields.Nested):
                 continue
 
-            load_from = field_type.load_from or field_name
-            field_dict = obj_dict.get(load_from, {})
+            data_key = field_type.data_key or field_name
+            field_dict = obj_dict.get(data_key, {})
             if field_dict is None:
                 continue
 

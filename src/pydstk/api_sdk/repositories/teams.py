@@ -23,7 +23,7 @@ class GetBaseTeamsApiUrlMixin(object):
 class ListTeams(GetBaseTeamsApiUrlMixin, ParseTeamDictMixin, ListResources):
     def _parse_objects(self, data, **kwargs):
         teams = []
-        for team_dict in data["listTeams"]:
+        for team_dict in data:
             team = self._parse_object(team_dict)
             teams.append(team)
 
@@ -33,15 +33,35 @@ class ListTeams(GetBaseTeamsApiUrlMixin, ParseTeamDictMixin, ListResources):
         client = graphql_client(api_key)
         query = gql(
             """
-            query ListTeams {
-                listTeams {
-                    teamId
-                    name
-                    dateModified
-                    dateCreated
+            query ListTeams($after: String) {
+                team {
+                    list(after: $after) {
+                        pageInfo {
+                            continuationToken
+                            hasNextPage
+                        }
+                        edges {
+                            node {
+                                teamId
+                                name
+                                dateModified
+                                dateCreated
+                            }
+                        }
+                    }
                 }
             }
             """
         )
-        resp = client.execute(query)["data"]
-        return self._parse_objects(resp)
+
+        team_dicts = []
+        after = None
+        while True:
+            result = client.execute(query, variable_values={"after": after})
+            page = result["team"]["list"]
+            team_dicts.extend(edge["node"] for edge in page["edges"] or [])
+
+            if not page["pageInfo"]["hasNextPage"]:
+                return self._parse_objects(team_dicts)
+
+            after = page["pageInfo"]["continuationToken"]
