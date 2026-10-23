@@ -1,1 +1,1 @@
-from .teams import ListTeams
+from .teams import GetTeam, ListTeams

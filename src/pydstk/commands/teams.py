@@ -2,10 +2,10 @@ import abc
 
 import six
 
-from pydstk import exceptions, api_sdk
-from pydstk.api_sdk import sdk_exceptions
+from pydstk import api_sdk
+from pydstk.api_sdk.config import config, update_config_file
 from pydstk.cli_constants import CLI_CLIENT_NAME
-from pydstk.commands.common import ListCommandMixin, BaseCommand
+from pydstk.commands.common import BaseCommand, ListCommandMixin, display
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -21,20 +21,27 @@ class TeamsCommand(BaseCommand):
 
 class ListTeamsCommand(ListCommandMixin, TeamsCommand):
     def _get_instances(self, **kwargs):
-        try:
-            instances = self.client.list(**kwargs)
-        except sdk_exceptions.PydstkSdkError as e:
-            raise exceptions.ReceivingDataFailedError(e)
-
-        return instances
+        return self.client.list(**kwargs)
 
     def _get_table_data(self, objects):
         data = [("ID", "Name", "Created Date", "Modified Date")]
 
         for team in objects:
-            handle = team.team_id
-            name = team.name
-            created_date = team.date_created
-            modified_date = team.date_modified
-            data.append((handle, name, created_date, modified_date))
+            marker = " (current)" if team.team_id == config.TEAM_ID else ""
+            data.append(
+                (
+                    team.team_id,
+                    display(team.name) + marker,
+                    team.date_created,
+                    team.date_modified,
+                )
+            )
         return data
+
+
+class UseTeamCommand(TeamsCommand):
+    def execute(self, team_id):
+        team = self.client.get(team_id)
+        config.TEAM_ID = team.team_id
+        update_config_file(teamId=team.team_id)
+        self.logger.log("Now using team {} ({}).".format(team.name, team.team_id))

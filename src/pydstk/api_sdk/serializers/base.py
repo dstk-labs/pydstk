@@ -50,3 +50,17 @@ class BaseSchema(marshmallow.Schema):
 
             if field_data:
                 setattr(instance, field_name, field_data)
+
+
+def nested_field(data_key, key):
+    """Loads one value out of a nested GraphQL object, e.g. createdBy.realName
+
+    :param str data_key: field name in the GraphQL response
+    :param str key: key inside the nested object
+    """
+    return marshmallow.fields.Function(
+        deserialize=lambda value: value.get(key),
+        data_key=data_key,
+        allow_none=True,
+        load_only=True,
+    )

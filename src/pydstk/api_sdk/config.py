@@ -12,19 +12,12 @@ _DEFAULT_HELP_OPTIONS_COLOR = "green"
 _DEFAULT_USE_CONSOLE_COLORS = True
 
 
-# Copy-pasted from `login.py` to avoid a circular dependency
-# Can probably be cleaned up later
-def get_api_key(pydstk_dir, config_path):
-    pydstk_dir = os.path.expanduser("~/.dstk") if pydstk_dir is None else pydstk_dir
-    config_path = (
-        os.path.join(pydstk_dir, "config.json") if config_path is None else config_path
-    )
+def read_config_file(config_path):
+    if not os.path.exists(config_path):
+        return {}
 
-    if os.path.exists(config_path):
-        config_data = json.load(open(config_path))
-        if config_data and "apiKey" in config_data:
-            return config_data["apiKey"]
-    return ""
+    with open(config_path) as config_file:
+        return json.load(config_file) or {}
 
 
 def get_help_colors_dict(use_colors, help_headers_color, help_options_color):
@@ -51,7 +44,10 @@ class config(object):
         "PYDSTK_CONFIG_FILE_NAME", _DEFAULT_CONFIG_FILE_NAME
     )
     PYDSTK_API_KEY = os.environ.get(
-        "PYDSTK_API_KEY", get_api_key(CONFIG_DIR_PATH, CONFIG_FILE_NAME)
+        "PYDSTK_API_KEY", read_config_file(CONFIG_FILE_NAME).get("apiKey", "")
+    )
+    TEAM_ID = os.environ.get(
+        "PYDSTK_TEAM_ID", read_config_file(CONFIG_FILE_NAME).get("teamId", "")
     )
 
     HELP_HEADERS_COLOR = os.environ.get(
@@ -66,3 +62,13 @@ class config(object):
     HELP_COLORS_DICT = get_help_colors_dict(
         USE_CONSOLE_COLORS, HELP_HEADERS_COLOR, HELP_OPTIONS_COLOR
     )
+
+
+def update_config_file(**values):
+    os.makedirs(config.CONFIG_DIR_PATH, exist_ok=True)
+    config_data = read_config_file(config.CONFIG_FILE_NAME)
+    config_data.update(values)
+
+    with open(config.CONFIG_FILE_NAME, "w") as config_file:
+        json.dump(config_data, config_file, indent=2, sort_keys=True)
+        config_file.write("\n")
