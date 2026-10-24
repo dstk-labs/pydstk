@@ -1,6 +1,21 @@
 import abc
+
 import six
-from pydstk.clilogger import CliLogger
+
+from pydstk.cli_logger import CliLogger
+
+
+def make_table(rows):
+    widths = [max(len(str(cell)) for cell in column) for column in zip(*rows)]
+    lines = [
+        "  ".join(str(cell).ljust(width) for cell, width in zip(row, widths))
+        for row in rows
+    ]
+    return "\n".join(line.rstrip() for line in lines)
+
+
+def display(value):
+    return "" if value is None else value
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -21,11 +36,13 @@ class BaseCommand:
 
 @six.add_metaclass(abc.ABCMeta)
 class ListCommandMixin(object):
-    WAITING_FOR_RESPONSE_MESSAGE = "Waiting for data..."
-
     def execute(self, **kwargs):
         instances = self._get_instances(**kwargs)
-        self._log_objects_list(instances)
+        if not instances:
+            self.logger.warning("No data found")
+            return
+
+        self.logger.log(make_table(self._get_table_data(instances)))
 
     @abc.abstractmethod
     def _get_instances(self, **kwargs):
@@ -35,23 +52,20 @@ class ListCommandMixin(object):
     def _get_table_data(self, objects):
         pass
 
-    def _log_objects_list(self, objects):
-        if not objects:
-            self.logger.warning("No data found")
-            return
 
-        table_data = self._get_table_data(objects)
-        table_str = self._make_list_table(table_data)
-        self._print_table_to_terminal(table_str)
+@six.add_metaclass(abc.ABCMeta)
+class DetailCommandMixin(object):
+    def execute(self, **kwargs):
+        instance = self._get_instance(**kwargs)
+        self.logger.log(make_table(self._get_table_data(instance)))
 
-    def _print_table_to_terminal(self, table_str):
-        self.logger.log(table_str)
+    @abc.abstractmethod
+    def _get_instance(self, **kwargs):
+        pass
 
-    @staticmethod
-    def _make_list_table(table_data):
-        widths = [max(len(str(cell)) for cell in column) for column in zip(*table_data)]
-        rows = [
-            "  ".join(str(cell).ljust(width) for cell, width in zip(row, widths))
-            for row in table_data
-        ]
-        return "\n".join(row.rstrip() for row in rows)
+    @abc.abstractmethod
+    def _get_table_data(self, instance):
+        """
+        :return: list of (label, value) rows
+        """
+        pass

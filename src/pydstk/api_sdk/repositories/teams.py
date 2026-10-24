@@ -1,67 +1,62 @@
 from gql import gql
-from pydstk.api_sdk.config import config
-from pydstk.api_sdk.graphql import graphql_client
+
 from pydstk.api_sdk import serializers
+from pydstk.api_sdk.exceptions import ResourceFetchingError
 from pydstk.api_sdk.repositories.common import ListResources
 
+TEAM_FIELDS = """
+    teamId
+    name
+    description
+    isArchived
+    dateCreated
+    dateModified
+"""
 
-class ParseTeamDictMixin(object):
-    def _parse_object(self, model_dict, **kwargs):
-        """
-        :param dict model_dict:
-        :rtype Team
-        """
-        model = serializers.Team().get_instance(model_dict)
-        return model
-
-
-class GetBaseTeamsApiUrlMixin(object):
-    def _get_api_url(self, **_):
-        return config.CONFIG_HOST
-
-
-class ListTeams(GetBaseTeamsApiUrlMixin, ParseTeamDictMixin, ListResources):
-    def _parse_objects(self, data, **kwargs):
-        teams = []
-        for team_dict in data:
-            team = self._parse_object(team_dict)
-            teams.append(team)
-
-        return teams
-
-    def list(self, api_key=None):
-        client = graphql_client(api_key)
-        query = gql(
-            """
-            query ListTeams($after: String) {
-                team {
-                    list(after: $after) {
-                        pageInfo {
-                            continuationToken
-                            hasNextPage
-                        }
-                        edges {
-                            node {
-                                teamId
-                                name
-                                dateModified
-                                dateCreated
-                            }
-                        }
+LIST_TEAMS = gql(
+    """
+    query ListTeams($after: String, $teamId: String, $includeArchived: Boolean!) {
+        team {
+            list(after: $after, teamId: $teamId, includeArchived: $includeArchived) {
+                pageInfo {
+                    continuationToken
+                    hasNextPage
+                }
+                edges {
+                    node {
+                        %s
                     }
                 }
             }
-            """
+        }
+    }
+    """
+    % TEAM_FIELDS
+)
+
+
+class ListTeams(ListResources):
+    SERIALIZER_CLS = serializers.Team
+
+    def list(self, include_archived=False):
+        team_dicts = self._fetch_all(
+            LIST_TEAMS, ("team", "list"), {"includeArchived": include_archived}
         )
+        return self._parse_objects(team_dicts)
 
-        team_dicts = []
-        after = None
-        while True:
-            result = client.execute(query, variable_values={"after": after})
-            page = result["team"]["list"]
-            team_dicts.extend(edge["node"] for edge in page["edges"] or [])
 
-            if not page["pageInfo"]["hasNextPage"]:
-                return self._parse_objects(team_dicts)
+class GetTeam(ListResources):
+    SERIALIZER_CLS = serializers.Team
 
-            after = page["pageInfo"]["continuationToken"]
+    def get(self, team_id):
+        team_dicts = self._fetch_all(
+            LIST_TEAMS,
+            ("team", "list"),
+            {"teamId": team_id, "includeArchived": True},
+        )
+        if not team_dicts:
+            raise ResourceFetchingError(
+                "Team {} doesn't exist or you aren't a member of it".format(team_id)
+            )
+
+        return self._parse_object(team_dicts[0])

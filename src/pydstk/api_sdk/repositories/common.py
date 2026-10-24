@@ -1,88 +1,63 @@
 import abc
-import six
 
+import six
+from gql.transport.exceptions import TransportError, TransportQueryError
+
+from pydstk.api_sdk.exceptions import ResourceFetchingError
 from pydstk.api_sdk.graphql import graphql_client
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseRepository(object):
-    VALIDATION_ERROR_MESSAGE = "Failed to fetch data"
+    SERIALIZER_CLS = None
 
     def __init__(self, api_key, logger, client_name=None):
         self.api_key = api_key
         self.logger = logger
         self.client_name = client_name
 
-    @abc.abstractmethod
-    def _get_api_url(self, **kwargs):
-        """Get base url to the api
-
-        :rtype: str
-        """
-        pass
-
-    def _get_client(self, **kwargs):
-        """
-        :rtype: http_client.API
-        """
+    def _execute(self, document, variables=None):
         client = graphql_client(api_key=self.api_key)
-        return client
-
-    def _get(self, **kwargs):
-        query = self._get_request_query(kwargs)
-        params = self._get_request_params(kwargs)
-        url = self._get_api_url(**kwargs)
-        client = self._get_client(**kwargs)
-        response = self._send_request(client, url, query=query, variable_values=params)
-
-        return response
-
-    def _send_request(self, client, url, json=None, params=None):
-        response = client.get(url, json=json, params=params)
-        return response
-
-    def _get_request_query(self, kwargs):
-        return None
-
-    def _get_request_params(self, kwargs):
-        return None
-
-
-@six.add_metaclass(abc.ABCMeta)
-class ListResources(BaseRepository):
-    SERIALIZER_CLS = None
-
-    def _parse_objects(self, data, **kwargs):
-        instances = []
-        instance_dicts = self._get_instance_dicts(data, **kwargs)
-        for instance_dict in instance_dicts:
-            instance = self._parse_object(instance_dict)
-            instances.append(instance)
-
-        return instances
-
-    def _get_instance_dicts(self, data, **kwargs):
-        return data
-
-    def _get_meta_data(self, resp):
-        pass
+        try:
+            return client.execute(document, variable_values=variables)
+        except TransportQueryError as error:
+            message = error.errors[0]["message"] if error.errors else str(error)
+            raise ResourceFetchingError(message)
+        except TransportError as error:
+            raise ResourceFetchingError("DSTK request failed: {}".format(error))
 
     def _parse_object(self, instance_dict):
         """
         :param dict instance_dict:
         :return: model instance
         """
-        instance = self.SERIALIZER_CLS().get_instance(instance_dict)
-        return instance
+        return self.SERIALIZER_CLS().get_instance(instance_dict)
 
-    def list(self, **kwargs):
-        response = self._get(**kwargs)
-        instances = self._get_instances(response, **kwargs)
-        return instances
 
-    def _get_instances(self, response, **kwargs):
-        if not response.data:
-            return []
+@six.add_metaclass(abc.ABCMeta)
+class ListResources(BaseRepository):
+    def _fetch_all(self, document, path, variables=None):
+        """Follows continuation tokens until every page of a connection is read
 
-        objects = self._parse_objects(response.data, **kwargs)
-        return objects
+        :param document: query that takes an `$after` variable
+        :param tuple[str] path: keys from the result root to the connection
+        :param dict variables:
+        :rtype: list[dict]
+        """
+        nodes = []
+        after = None
+        while True:
+            result = self._execute(document, dict(variables or {}, after=after))
+            page = result
+            for key in path:
+                page = page[key]
+
+            nodes.extend(edge["node"] for edge in page["edges"] or [])
+
+            if not page["pageInfo"]["hasNextPage"]:
+                return nodes
+
+            after = page["pageInfo"]["continuationToken"]
+
+    def _parse_objects(self, instance_dicts):
+        return [self._parse_object(instance_dict) for instance_dict in instance_dicts]
