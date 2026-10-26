@@ -6,3 +6,10 @@ from .projects import (
     GetProject,
     ListProjects,
 )
+from .storage_providers import (
+    ArchiveStorageProvider,
+    CreateStorageProvider,
+    EditStorageProvider,
+    GetStorageProvider,
+    ListStorageProviders,
+)
