@@ -13,3 +13,10 @@ from .storage_providers import (
     GetStorageProvider,
     ListStorageProviders,
 )
+from .ml_models import (
+    ArchiveModel,
+    CreateModel,
+    EditModel,
+    GetModel,
+    ListModels,
+)
