@@ -3,6 +3,7 @@ import colorama
 from click._compat import get_text_stderr
 
 import pydstk.cli.auth  # noqa: F401
+import pydstk.cli.invitations  # noqa: F401
 import pydstk.cli.ml_models  # noqa: F401
 import pydstk.cli.model_versions  # noqa: F401
 import pydstk.cli.projects  # noqa: F401

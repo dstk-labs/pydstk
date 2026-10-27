@@ -23,3 +23,45 @@ class TeamsClient(BaseClient):
         """
         repository = self.build_repository(repositories.GetTeam)
         return repository.get(team_id)
+
+    def list_members(self, team_id):
+        """
+        :param str team_id:
+        :rtype: list[models.TeamMember]
+        """
+        repository = self.build_repository(repositories.ListTeamMembers)
+        return repository.list(team_id)
+
+    def create(self, name, description=""):
+        """
+        :param str name:
+        :param str description:
+        :rtype: models.Team
+        """
+        repository = self.build_repository(repositories.CreateTeam)
+        return repository.create(name, description)
+
+    def edit(self, team_id, name=None, description=None):
+        """Change a team. Fields left as None keep their current value
+
+        :param str team_id:
+        :param str name:
+        :param str description:
+        :rtype: models.Team
+        """
+        current = self.get(team_id)
+        repository = self.build_repository(repositories.EditTeam)
+        return repository.edit(
+            team_id,
+            current.name if name is None else name,
+            current.description if description is None else description,
+        )
+
+    def archive(self, team_id):
+        """Archive a team, or restore it if it is already archived
+
+        :param str team_id:
+        :rtype: models.Team
+        """
+        repository = self.build_repository(repositories.ArchiveTeam)
+        return repository.archive(team_id)

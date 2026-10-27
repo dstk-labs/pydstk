@@ -2,7 +2,7 @@ from gql import gql
 
 from pydstk.api_sdk import serializers
 from pydstk.api_sdk.exceptions import ResourceFetchingError
-from pydstk.api_sdk.repositories.common import ListResources
+from pydstk.api_sdk.repositories.common import BaseRepository, ListResources
 
 TEAM_FIELDS = """
     teamId
@@ -27,6 +27,66 @@ LIST_TEAMS = gql(
                         %s
                     }
                 }
+            }
+        }
+    }
+    """
+    % TEAM_FIELDS
+)
+
+
+LIST_TEAM_MEMBERS = gql(
+    """
+    query ListTeamMembers($teamId: String!) {
+        team {
+            listMembers(teamId: $teamId) {
+                memberId
+                role
+                dateCreated
+                user {
+                    userId
+                    userName
+                    realName
+                    email
+                }
+            }
+        }
+    }
+    """
+)
+
+CREATE_TEAM = gql(
+    """
+    mutation CreateTeam($data: TeamInput!) {
+        team {
+            create(data: $data) {
+                %s
+            }
+        }
+    }
+    """
+    % TEAM_FIELDS
+)
+
+EDIT_TEAM = gql(
+    """
+    mutation EditTeam($data: EditTeamInput!) {
+        team {
+            edit(data: $data) {
+                %s
+            }
+        }
+    }
+    """
+    % TEAM_FIELDS
+)
+
+ARCHIVE_TEAM = gql(
+    """
+    mutation ArchiveTeam($teamId: String!) {
+        team {
+            archive(teamId: $teamId) {
+                %s
             }
         }
     }
@@ -60,3 +120,40 @@ class GetTeam(ListResources):
             )
 
         return self._parse_object(team_dicts[0])
+
+
+class ListTeamMembers(BaseRepository):
+    SERIALIZER_CLS = serializers.TeamMember
+
+    def list(self, team_id):
+        result = self._execute(LIST_TEAM_MEMBERS, {"teamId": team_id})
+        return [
+            self._parse_object(member_dict)
+            for member_dict in result["team"]["listMembers"] or []
+        ]
+
+
+class CreateTeam(BaseRepository):
+    SERIALIZER_CLS = serializers.Team
+
+    def create(self, name, description):
+        data = {"name": name, "description": description}
+        result = self._execute(CREATE_TEAM, {"data": data})
+        return self._parse_object(result["team"]["create"])
+
+
+class EditTeam(BaseRepository):
+    SERIALIZER_CLS = serializers.Team
+
+    def edit(self, team_id, name, description):
+        data = {"teamId": team_id, "name": name, "description": description}
+        result = self._execute(EDIT_TEAM, {"data": data})
+        return self._parse_object(result["team"]["edit"])
+
+
+class ArchiveTeam(BaseRepository):
+    SERIALIZER_CLS = serializers.Team
+
+    def archive(self, team_id):
+        result = self._execute(ARCHIVE_TEAM, {"teamId": team_id})
+        return self._parse_object(result["team"]["archive"])
