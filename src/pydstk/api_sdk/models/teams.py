@@ -20,3 +20,26 @@ class Team(object):
     is_archived = attr.ib(type=bool, default=None)
     date_created = attr.ib(type=str, default=None)
     date_modified = attr.ib(type=str, default=None)
+
+
+@attr.s
+class TeamMember(object):
+    """
+    TeamMember class
+
+    :param str member_id:
+    :param str role:
+    :param str user_id:
+    :param str user_name:
+    :param str real_name:
+    :param str email:
+    :param str date_created:
+    """
+
+    member_id = attr.ib(type=str, default=None)
+    role = attr.ib(type=str, default=None)
+    user_id = attr.ib(type=str, default=None)
+    user_name = attr.ib(type=str, default=None)
+    real_name = attr.ib(type=str, default=None)
+    email = attr.ib(type=str, default=None)
+    date_created = attr.ib(type=str, default=None)
