@@ -20,3 +20,13 @@ from .ml_models import (
     GetModel,
     ListModels,
 )
+from .model_versions import (
+    ArchiveModelVersion,
+    CreateModelVersion,
+    EditModelVersion,
+    GetModelVersion,
+    ListModelVersionFiles,
+    ListModelVersions,
+    PublishModelVersion,
+    UploadModelVersionFile,
+)
