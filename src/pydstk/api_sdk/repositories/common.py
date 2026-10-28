@@ -16,8 +16,8 @@ class BaseRepository(object):
         self.logger = logger
         self.client_name = client_name
 
-    def _execute(self, document, variables=None):
-        client = graphql_client(api_key=self.api_key)
+    def _execute(self, document, variables=None, anonymous=False):
+        client = graphql_client(api_key=self.api_key, anonymous=anonymous)
         try:
             return client.execute(document, variable_values=variables)
         except TransportQueryError as error:

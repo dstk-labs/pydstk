@@ -18,9 +18,10 @@ def auth_headers(api_key=None):
     return {}
 
 
-def graphql_client(api_key=None):
+def graphql_client(api_key=None, anonymous=False):
+    headers = {} if anonymous else auth_headers(api_key)
     transport = RequestsHTTPTransport(
-        headers=auth_headers(api_key), url=config.API_HOST, verify=True, retries=3
+        headers=headers, url=config.API_HOST, verify=True, retries=3
     )
 
     return Client(transport=transport)
