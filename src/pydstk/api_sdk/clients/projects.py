@@ -5,16 +5,18 @@ from pydstk.api_sdk.clients.base_client import BaseClient
 class ProjectsClient(BaseClient):
     entity = "project"
 
-    def list(self, team_id, include_archived=False, name=None):
+    def list(self, include_archived=False, name=None, team_id=None):
         """Get list of projects in a team
 
-        :param str team_id:
         :param bool include_archived:
         :param str name: only projects whose name contains this text
+        :param str team_id: defaults to the client's team
         :rtype: list[models.Project]
         """
         repository = self.build_repository(repositories.ListProjects)
-        return repository.list(team_id, include_archived=include_archived, name=name)
+        return repository.list(
+            self.resolve_team_id(team_id), include_archived=include_archived, name=name
+        )
 
     def get(self, project_id):
         """
@@ -24,15 +26,15 @@ class ProjectsClient(BaseClient):
         repository = self.build_repository(repositories.GetProject)
         return repository.get(project_id)
 
-    def create(self, team_id, name, description=""):
+    def create(self, name, description="", team_id=None):
         """
-        :param str team_id:
         :param str name:
         :param str description:
+        :param str team_id: defaults to the client's team
         :rtype: models.Project
         """
         repository = self.build_repository(repositories.CreateProject)
-        return repository.create(team_id, name, description)
+        return repository.create(self.resolve_team_id(team_id), name, description)
 
     def edit(self, project_id, name=None, description=None):
         """Change a project. Fields left as None keep their current value
