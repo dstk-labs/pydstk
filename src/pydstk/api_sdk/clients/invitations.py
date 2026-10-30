@@ -24,16 +24,16 @@ class InvitationsClient(BaseClient):
         repository = self.build_repository(repositories.GetInvitation)
         return repository.get(invitation_id)
 
-    def create(self, team_id, user_id, role):
+    def create(self, user_id, role="member", team_id=None):
         """Invite a user to a team
 
-        :param str team_id:
         :param str user_id:
         :param str role: owner, member or viewer
+        :param str team_id: defaults to the client's team
         :rtype: models.Invitation
         """
         repository = self.build_repository(repositories.CreateInvitation)
-        return repository.create(team_id, user_id, role)
+        return repository.create(self.resolve_team_id(team_id), user_id, role)
 
     def accept(self, invitation_id):
         """
@@ -51,12 +51,12 @@ class InvitationsClient(BaseClient):
         repository = self.build_repository(repositories.RejectInvitation)
         return repository.reject(invitation_id)
 
-    def cancel(self, invitation_id, team_id):
+    def cancel(self, invitation_id, team_id=None):
         """Cancel an invitation your team sent
 
         :param str invitation_id:
-        :param str team_id:
+        :param str team_id: defaults to the client's team
         :rtype: models.Invitation
         """
         repository = self.build_repository(repositories.CancelInvitation)
-        return repository.cancel(invitation_id, team_id)
+        return repository.cancel(invitation_id, self.resolve_team_id(team_id))
