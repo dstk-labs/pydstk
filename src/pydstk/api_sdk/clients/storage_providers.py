@@ -5,17 +5,19 @@ from pydstk.api_sdk.clients.base_client import BaseClient
 class StorageProvidersClient(BaseClient):
     entity = "storageProvider"
 
-    def list(self, team_id, include_archived=False, bucket=None):
+    def list(self, include_archived=False, bucket=None, team_id=None):
         """Get list of storage providers in a team
 
-        :param str team_id:
         :param bool include_archived:
         :param str bucket: only providers whose bucket name contains this text
+        :param str team_id: defaults to the client's team
         :rtype: list[models.StorageProvider]
         """
         repository = self.build_repository(repositories.ListStorageProviders)
         return repository.list(
-            team_id, include_archived=include_archived, bucket=bucket
+            self.resolve_team_id(team_id),
+            include_archived=include_archived,
+            bucket=bucket,
         )
 
     def get(self, provider_id):
@@ -27,21 +29,32 @@ class StorageProvidersClient(BaseClient):
         return repository.get(provider_id)
 
     def create(
-        self, team_id, bucket, endpoint_url, region, access_key_id, secret_access_key
+        self,
+        bucket,
+        endpoint_url,
+        region,
+        access_key_id,
+        secret_access_key,
+        team_id=None,
     ):
         """Connect an S3-compatible bucket
 
-        :param str team_id:
         :param str bucket:
         :param str endpoint_url:
         :param str region:
         :param str access_key_id:
         :param str secret_access_key:
+        :param str team_id: defaults to the client's team
         :rtype: models.StorageProvider
         """
         repository = self.build_repository(repositories.CreateStorageProvider)
         return repository.create(
-            team_id, bucket, endpoint_url, region, access_key_id, secret_access_key
+            self.resolve_team_id(team_id),
+            bucket,
+            endpoint_url,
+            region,
+            access_key_id,
+            secret_access_key,
         )
 
     def edit(self, provider_id, access_key_id, secret_access_key):

@@ -24,13 +24,13 @@ class TeamsClient(BaseClient):
         repository = self.build_repository(repositories.GetTeam)
         return repository.get(team_id)
 
-    def list_members(self, team_id):
+    def list_members(self, team_id=None):
         """
-        :param str team_id:
+        :param str team_id: defaults to the client's team
         :rtype: list[models.TeamMember]
         """
         repository = self.build_repository(repositories.ListTeamMembers)
-        return repository.list(team_id)
+        return repository.list(self.resolve_team_id(team_id))
 
     def create(self, name, description=""):
         """
