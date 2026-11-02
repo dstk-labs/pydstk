@@ -16,3 +16,7 @@ class ResourceCreatingDataError(ResourceCreatingError):
 
 class DeviceAuthorizationError(DstkSdkError):
     pass
+
+
+class UnsupportedModelError(DstkSdkError):
+    pass

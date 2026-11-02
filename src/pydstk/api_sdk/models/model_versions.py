@@ -12,6 +12,7 @@ class ModelVersion(object):
     :param bool is_archived:
     :param bool is_published:
     :param str s3_prefix:
+    :param dict metadata: framework, parameters and files recorded by log_model
     :param str model_id:
     :param str model_name:
     :param str created_by:
@@ -24,6 +25,7 @@ class ModelVersion(object):
     is_archived = attr.ib(type=bool, default=None)
     is_published = attr.ib(type=bool, default=None)
     s3_prefix = attr.ib(type=str, default=None)
+    metadata = attr.ib(type=dict, default=None)
     model_id = attr.ib(type=str, default=None)
     model_name = attr.ib(type=str, default=None)
     created_by = attr.ib(type=str, default=None)

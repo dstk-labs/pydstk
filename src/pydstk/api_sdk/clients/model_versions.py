@@ -2,6 +2,7 @@ import os
 
 from pydstk.api_sdk import repositories
 from pydstk.api_sdk.clients.base_client import BaseClient
+from pydstk.api_sdk.exceptions import ResourceFetchingError
 
 
 def _files_to_upload(paths):
@@ -20,6 +21,16 @@ def _files_to_upload(paths):
         else:
             uploads.append((path, os.path.basename(path)))
     return uploads
+
+
+def _local_path(directory, filename):
+    root = os.path.realpath(directory)
+    local_path = os.path.realpath(os.path.join(root, filename))
+    if os.path.commonpath([root, local_path]) != root:
+        raise ResourceFetchingError(
+            "Refusing to download {} outside {}".format(filename, directory)
+        )
+    return local_path
 
 
 class ModelVersionsClient(BaseClient):
@@ -43,15 +54,16 @@ class ModelVersionsClient(BaseClient):
         repository = self.build_repository(repositories.GetModelVersion)
         return repository.get(model_version_id)
 
-    def create(self, model_id, description=None):
+    def create(self, model_id, description=None, metadata=None):
         """Start a new, unpublished version of a model
 
         :param str model_id:
         :param str description:
+        :param dict metadata:
         :rtype: models.ModelVersion
         """
         repository = self.build_repository(repositories.CreateModelVersion)
-        return repository.create(model_id, description)
+        return repository.create(model_id, description, metadata)
 
     def edit(self, model_version_id, description):
         """
@@ -110,6 +122,26 @@ class ModelVersionsClient(BaseClient):
                 )
             )
         return keys
+
+    def download(self, model_version_id, directory, filenames=None):
+        """Download a version's files, keeping their paths under the version
+
+        :param str model_version_id:
+        :param str directory: folder to download into
+        :param list[str] filenames: defaults to every file in the version
+        :rtype: list[str]
+        :returns: local paths of the downloaded files
+        """
+        if filenames is None:
+            filenames = [file.name for file in self.list_files(model_version_id)]
+
+        repository = self.build_repository(repositories.DownloadModelVersionFile)
+        return [
+            repository.download(
+                model_version_id, filename, _local_path(directory, filename)
+            )
+            for filename in filenames
+        ]
 
     @staticmethod
     def upload_size(paths):

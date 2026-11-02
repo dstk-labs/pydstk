@@ -1,12 +1,20 @@
+import os
+
 import requests
 from gql import gql
 
 from pydstk.api_sdk import serializers
-from pydstk.api_sdk.exceptions import DstkSdkError, ResourceCreatingError
+from pydstk.api_sdk.exceptions import (
+    DstkSdkError,
+    ResourceCreatingError,
+    ResourceFetchingError,
+)
 from pydstk.api_sdk.repositories.common import BaseRepository, ListResources
 
 PART_SIZE = 64 * 1024 * 1024
 PART_UPLOAD_TIMEOUT_SECONDS = 300
+DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+DOWNLOAD_TIMEOUT_SECONDS = 300
 
 MODEL_VERSION_FIELDS = """
     modelVersionId
@@ -15,6 +23,7 @@ MODEL_VERSION_FIELDS = """
     isArchived
     isFinalized
     s3Prefix
+    metadata
     modelId {
         modelId
         modelName
@@ -115,6 +124,16 @@ ARCHIVE_MODEL_VERSION = gql(
     % MODEL_VERSION_FIELDS
 )
 
+DOWNLOAD_URL = gql(
+    """
+    query ModelVersionDownloadURL($modelVersionId: String!, $filename: String!) {
+        modelVersion {
+            downloadURL(modelVersionId: $modelVersionId, filename: $filename)
+        }
+    }
+    """
+)
+
 PRESIGN_URL = gql(
     """
     mutation PresignURL($data: PresignedURLInput!) {
@@ -181,8 +200,8 @@ class GetModelVersion(BaseRepository):
 class CreateModelVersion(BaseRepository):
     SERIALIZER_CLS = serializers.ModelVersion
 
-    def create(self, model_id, description=None):
-        data = {"modelId": model_id, "description": description}
+    def create(self, model_id, description=None, metadata=None):
+        data = {"modelId": model_id, "description": description, "metadata": metadata}
         result = self._execute(CREATE_MODEL_VERSION, {"data": data})
         return self._parse_object(result["modelVersion"]["create"])
 
@@ -315,3 +334,35 @@ class UploadModelVersionFile(BaseRepository):
         )
         result = self._execute(PRESIGN_URL, {"data": data})
         return result["modelVersion"]["presignURL"]
+
+
+class DownloadModelVersionFile(BaseRepository):
+    def download(self, model_version_id, filename, local_path):
+        """Streams one file from the version's bucket to disk
+
+        :param str model_version_id:
+        :param str filename: name under the version
+        :param str local_path: where to write it
+        :rtype: str
+        """
+        result = self._execute(
+            DOWNLOAD_URL, {"modelVersionId": model_version_id, "filename": filename}
+        )
+        url = result["modelVersion"]["downloadURL"]
+
+        with requests.get(
+            url, stream=True, timeout=DOWNLOAD_TIMEOUT_SECONDS
+        ) as response:
+            if not response.ok:
+                raise ResourceFetchingError(
+                    "Downloading {} failed with HTTP {}".format(
+                        filename, response.status_code
+                    )
+                )
+
+            os.makedirs(os.path.dirname(local_path) or ".", exist_ok=True)
+            with open(local_path, "wb") as local_file:
+                for chunk in response.iter_content(chunk_size=DOWNLOAD_CHUNK_SIZE):
+                    local_file.write(chunk)
+
+        return local_path

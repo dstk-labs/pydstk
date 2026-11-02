@@ -13,6 +13,7 @@ class ModelVersion(BaseSchema):
     is_archived = marshmallow.fields.Bool(data_key="isArchived", allow_none=True)
     is_published = marshmallow.fields.Bool(data_key="isFinalized", allow_none=True)
     s3_prefix = marshmallow.fields.Str(data_key="s3Prefix", load_only=True)
+    metadata = marshmallow.fields.Dict(load_only=True, allow_none=True)
     model = marshmallow.fields.Raw(data_key="modelId", load_only=True, allow_none=True)
     created_by = nested_field("createdBy", "realName")
     date_created = marshmallow.fields.Str(data_key="dateCreated", load_only=True)

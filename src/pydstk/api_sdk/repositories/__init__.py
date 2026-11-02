@@ -30,6 +30,7 @@ from .ml_models import (
 from .model_versions import (
     ArchiveModelVersion,
     CreateModelVersion,
+    DownloadModelVersionFile,
     EditModelVersion,
     GetModelVersion,
     ListModelVersionFiles,
