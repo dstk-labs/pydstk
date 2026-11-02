@@ -32,6 +32,15 @@ def _status(version):
     return "published" if version.is_published else "draft"
 
 
+def _framework(version):
+    metadata = version.metadata or {}
+    if "framework" not in metadata:
+        return ""
+    return "{} {} ({})".format(
+        metadata["framework"], metadata["framework_version"], metadata["model_class"]
+    )
+
+
 @six.add_metaclass(abc.ABCMeta)
 class ModelVersionsCommand(BaseCommand):
     def _get_client(self, api_key, logger):
@@ -77,6 +86,7 @@ class GetModelVersionCommand(DetailCommandMixin, ModelVersionsCommand):
             ("Model", "{} ({})".format(instance.model_name, instance.model_id)),
             ("Status", _status(instance)),
             ("Description", display(instance.description)),
+            ("Framework", _framework(instance)),
             ("Storage Prefix", instance.s3_prefix),
             ("Created By", display(instance.created_by)),
             ("Created Date", instance.date_created),
